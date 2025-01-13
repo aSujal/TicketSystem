@@ -1,0 +1,11 @@
+﻿#toast-container .toast {
+    position: relative;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+#toast-container .show-toast {
+    transform: translateY(0);
+    opacity: 1;
+}

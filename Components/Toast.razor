@@ -1,0 +1,27 @@
+﻿<!-- Toast.razor -->
+<div id="toast-container" class="fixed bottom-0 right-0 z-50 w-11/12 max-w-md p-2">
+    <div class="toast @className transition-transform transform translate-y-full opacity-0 duration-200 ease-in-out" @ref="toastRef">
+        <div class="bg-gray-500 text-white font-semibold px-4 py-2 rounded-lg shadow-md flex items-center gap-2">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>@Message</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ElementReference toastRef;
+    public string Message { get; set; } = string.Empty;
+    private string className = "";
+
+    public async Task ShowToastAsync(string message)
+    {
+        Message = message;
+        className = "show-toast";
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(3000).ContinueWith(async _ =>
+       {
+           className = "";
+           await InvokeAsync(StateHasChanged);
+       });
+    }
+}
