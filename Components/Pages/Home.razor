@@ -1,7 +1,111 @@
-﻿@page "/"
+﻿@attribute [Authorize]
+@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using TicketSystem.Services
+@using TicketSystem.Models
+@inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
+@inject SprintService SprintService
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<section class="bg-gray-50 dark:bg-gray-900 w-full p-3 sm:p-5">
+    <div class="mx-auto w-full px-4 lg:px-12">
+        <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+                <h1 class="text-lg font-bold text-gray-900 dark:text-white">My Sprints</h1>
+                <button @onclick="NavigateToCreateSprint" type="button" class="flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                    <i class="fas fa-plus mr-2"></i> Add Sprint
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Color</th>
+                            <th scope="col" class="px-4 py-3">Sprint Name</th>
+                            <th scope="col" class="px-4 py-3">Start Date</th>
+                            <th scope="col" class="px-4 py-3">End Date</th>
+                            <th scope="col" class="px-4 py-3">Tickets completed</th>
+                            <th scope="col" class="px-4 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sprint in Sprints)
+                        {
+                            <tr class="border-b dark:border-gray-700">
+                                <td class="px-4 py-3">
+                                    <div class="w-10 h-3 rounded-md" style="background: @sprint.Color"></div>
+                                </td>
+                                <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">@sprint.Name</td>
+                                <td class="px-4 py-3">@sprint.StartDate.ToShortDateString()</td>
+                                <td class="px-4 py-3">@sprint.EndDate.ToShortDateString()</td>
+                                <td class="px-4 py-3">
+                                    @($"{sprint.Tickets.Count(t => t.Status == TicketStatus.Erledigt)} / {sprint.Tickets.Count}")
+                                </td>
+                                <td class="px-4 py-3 flex items-center space-x-2">
+                                    <!-- View -->
+                                    <button @onclick="() => NavigateToSprintDetails(sprint.Id)" class="text-blue-500 hover:text-blue-700">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <!-- Edit -->
+                                    <button @onclick="() => NavigateToEditSprint(sprint.Id)" class="text-green-500 hover:text-green-700">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <!-- Delete -->
+                                    <button @onclick="() => ConfirmDeleteSprint(sprint.Id)" class="text-red-500 hover:text-red-700">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
 
-Welcome to your new app.
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> authStateTask { get; set; }
+    private int userId;
+    private List<Sprint> Sprints = new List<Sprint>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authStateTask;
+        var user = authState.User;
+        userId = Convert.ToInt32(user.FindFirst(ClaimTypes.NameIdentifier).Value);
+        Sprints = await SprintService.GetByUserIdAsync(userId);
+    }
+    private void NavigateToCreateSprint()
+    {
+        NavigationManager.NavigateTo("/create-sprint");
+    }
+
+    private async Task ConfirmDeleteSprint(int sprintId)
+    {
+        await SprintService.DeleteAsync(sprintId, userId);
+        Sprints = await SprintService.GetByUserIdAsync(userId);  // Refresh the list
+    }
+
+
+    private void NavigateToSprintDetails(int sprintId)
+    {
+        NavigationManager.NavigateTo($"/sprint/{sprintId}");
+    }
+
+    private void NavigateToEditSprint(int sprintId)
+    {
+        NavigationManager.NavigateTo($"/edit-sprint/{sprintId}");
+    }
+}
+<script>
+    window.initializeFlowbite = () => {
+        initFlowbite();
+    }
+</script>

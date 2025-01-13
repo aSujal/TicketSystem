@@ -1,0 +1,99 @@
+﻿@page "/register"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using TicketSystem.Services
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+@rendermode InteractiveServer
+
+<PageTitle>Register</PageTitle>
+
+<div class="flex items-center justify-center h-full">
+    <div class="bg-gray-50 dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-sm w-full">
+        <h3 class="text-3xl font-semibold text-center text-gray-900 dark:text-white mb-6">Register</h3>
+
+        <!-- Error Message -->
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="text-red-500 dark:text-red-400 mb-4">
+                @errorMessage
+            </div>
+        }
+
+        <EditForm Model="registerModel" OnValidSubmit="HandleRegistration" FormName="RegisterForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-red-500 dark:text-red-400 mb-4" />
+
+            <!-- Username Field -->
+            <div class="mb-4">
+                <label for="username" class="block text-gray-900 dark:text-white text-sm font-semibold mb-2">Username</label>
+                <InputText id="username" @bind-Value="registerModel.Username" class="bg-gray-50 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                <ValidationMessage For="() => registerModel.Username" class="text-red-500 dark:text-red-400" />
+            </div>
+
+            <!-- Email Field -->
+            <div class="mb-4">
+                <label for="email" class="block text-gray-900 dark:text-white text-sm font-semibold mb-2">Email</label>
+                <InputText id="email" @bind-Value="registerModel.Email" class="bg-gray-50 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                <ValidationMessage For="() => registerModel.Email" class="text-red-500 dark:text-red-400" />
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-4">
+                <label for="password" class="block text-gray-900 dark:text-white text-sm font-semibold mb-2">Password</label>
+                <InputText id="password" type="password" @bind-Value="registerModel.Password" class="bg-gray-50 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                <ValidationMessage For="() => registerModel.Password" class="text-red-500 dark:text-red-400" />
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mb-4">
+                <button type="submit" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+                    Register
+                </button>
+            </div>
+        </EditForm>
+
+        <!-- Login Link -->
+        <div class="text-center">
+            <p class="text-sm font-light text-gray-500 dark:text-gray-400">Already have an account? <a href="/login" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+    private string errorMessage;
+
+    private async Task HandleRegistration()
+    {
+        if (await UserService.DoesUserExist(registerModel.Username, registerModel.Email))
+        {
+            errorMessage = "Email or Username exists.";
+            return;
+        }
+
+        bool result = await UserService.RegisterUserAsync(registerModel.Username, registerModel.Email, registerModel.Password);
+
+        if (result)
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            errorMessage = "Registration failed. Please try again.";
+        }
+    }
+
+    public class RegisterModel
+    {
+        [Required]
+        public string Username { get; set; }
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        public string Password { get; set; }
+    }
+}

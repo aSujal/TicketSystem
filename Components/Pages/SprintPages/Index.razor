@@ -1,0 +1,113 @@
+﻿@page "/sprint/{SprintId}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using TicketSystem.Models
+@using TicketSystem.Services
+@inject SprintService SprintService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<section class="bg-gray-50 dark:bg-gray-900 w-full p-3 sm:p-5">
+    <div class="mx-auto w-full px-4 lg:px-12">
+        <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+                <h1 class="text-lg font-bold text-gray-900 dark:text-white">Sprint: @SprintToView?.Name</h1>
+                <button @onclick="NavigateToCreateTicket" type="button" class="flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                    <i class="fas fa-edit mr-2"></i> Create Ticket
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Ticket ID</th>
+                            <th scope="col" class="px-4 py-3">Title</th>
+                            <th scope="col" class="px-4 py-3">Description</th>
+                            <th scope="col" class="px-4 py-3">Status</th>
+                            <th scope="col" class="px-4 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in Tickets)
+                        {
+                            <tr class="border-b dark:border-gray-700">
+                                <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">@ticket.Id</td>
+                                <td class="px-4 py-3">@ticket.Title</td>
+                                <td class="px-4 py-3">@ticket.Description</td>
+                                <td class="px-4 py-3">@ticket.Status</td>
+                                <td class="px-4 py-3 flex items-center space-x-2">
+                                    <!-- Edit -->
+                                    <button @onclick="() => NavigateToEditTicket(ticket.Id)" class="text-green-500 hover:text-green-700">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <!-- Delete -->
+                                    <button @onclick="() => ConfirmDeleteTicket(ticket.Id)" class="text-red-500 hover:text-red-700">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public string SprintId { get; set; }
+    [CascadingParameter]
+    public Task<AuthenticationState> authStateTask { get; set; }
+
+    private Sprint SprintToView;
+    private List<Ticket> Tickets = new List<Ticket>();
+    private int currentUserId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (int.TryParse(SprintId, out int sprintId))
+        {
+            var authState = await authStateTask;
+            var user = authState.User;
+            currentUserId = Convert.ToInt32(user.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            // Get the sprint details by SprintId
+            SprintToView = await SprintService.GetByIdAsync(sprintId);
+
+            if (SprintToView != null)
+            {
+                // Get tickets related to this sprint
+                Tickets = SprintToView.Tickets;
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/"); // Redirect to home if sprint not found
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private void NavigateToCreateTicket()
+    {
+        NavigationManager.NavigateTo($"/create-ticket/{SprintId}");
+    }
+
+
+    private void NavigateToEditTicket(int ticketId)
+    {
+        NavigationManager.NavigateTo($"/edit-ticket/{ticketId}");
+    }
+
+    private async Task ConfirmDeleteTicket(int ticketId)
+    {
+        // await TicketService.DeleteAsync(ticketId);
+        // Tickets = await TicketService.GetTicketsBySprintIdAsync(SprintId); // Refresh the list
+    }
+
+}

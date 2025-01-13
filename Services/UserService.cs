@@ -67,12 +67,14 @@ public class UserService
     {
         return await _context.Users
             .Include(u => u.Tickets) // Include tickets
+            .Include(u => u.Sprints)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
     public async Task<List<User>> GetAllAsync()
     {
         return await _context.Users
             .Include(u => u.Tickets) // Include orders placed by users
+            .Include(u => u.Sprints)
             .ToListAsync();
     }
 

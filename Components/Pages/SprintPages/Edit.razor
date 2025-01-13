@@ -1,0 +1,115 @@
+﻿@page "/edit-sprint/{SprintId}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using TicketSystem.Models
+@using TicketSystem.Services
+@inject SprintService SprintService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Edit Sprint</PageTitle>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (SprintToEdit == null)
+{
+    <p>Sprint not found.</p>
+}
+else
+{
+    <section class="bg-gray-50 dark:bg-gray-900 w-full p-3 sm:p-5">
+        <div class="mx-auto max-w-screen-md px-4 lg:px-12">
+            <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden p-6">
+                <h1 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Create a New Sprint</h1>
+                <EditForm Model="SprintToEdit" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="mb-4 text-red-600" />
+
+                    <div class="mb-4">
+                        <label for="sprintName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sprint Name</label>
+                        <InputText id="sprintName" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                   @bind-Value="SprintToEdit.Name" />
+                        <ValidationMessage For="@(() => SprintToEdit.Name)" class="text-red-600 text-sm mt-1" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                        <InputDate id="startDate" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                   @bind-Value="SprintToEdit.StartDate" />
+                        <ValidationMessage For="@(() => SprintToEdit.StartDate)" class="text-red-600 text-sm mt-1" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                        <InputDate id="endDate" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                   @bind-Value="SprintToEdit.EndDate" />
+                        <ValidationMessage For="@(() => SprintToEdit.EndDate)" class="text-red-600 text-sm mt-1" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="color" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sprint Color</label>
+                        <InputText id="color" type="color" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                   @bind-Value="SprintToEdit.Color" />
+                        <ValidationMessage For="@(() => SprintToEdit.Color)" class="text-red-600 text-sm mt-1" />
+                    </div>
+
+                    <div class="flex items-center justify-end w-full">
+                        <button type="submit" class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                            Update Sprint
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </section>
+
+}
+
+@code {
+    [Parameter]
+    public string SprintId { get; set; }  // Change to string for URL
+    [CascadingParameter]
+    public Task<AuthenticationState> authStateTask { get; set; }
+
+    private Sprint SprintToEdit;
+    private bool isLoading = true;
+    private int currentUserId;
+
+    // Handle parameter setting and conversion
+    protected override async Task OnParametersSetAsync()
+    {
+        if (int.TryParse(SprintId, out int sprintId))
+        {
+            var authState = await authStateTask;
+            var user = authState.User;
+            currentUserId = Convert.ToInt32(user.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            SprintToEdit = await SprintService.GetByIdAsync(sprintId);
+
+            // Check if the sprint exists and if the logged-in user is the owner
+            if (SprintToEdit == null || SprintToEdit.UserId != currentUserId)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                isLoading = false;
+            }
+        }
+        else
+        {
+            // Handle invalid SprintId
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await SprintService.UpdateAsync(SprintToEdit);
+        NavigationManager.NavigateTo("/");
+    }
+}

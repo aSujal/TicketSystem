@@ -11,8 +11,6 @@ public class Ticket
     public string? Color { get; set; } = "#BDD5EA";
     public string? Emoji { get; set; } = "📝";
     public int SprintId {  get; set; }
-    public int UserId { get; set; } 
-    public User? User { get; set; }
     public Sprint Sprint { get; set; }
 }
 

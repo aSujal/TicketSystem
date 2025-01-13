@@ -9,6 +9,6 @@ public class User
     public string PasswordSalt { get; set; }
     public bool isAdmin { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
     public List<Ticket> Tickets { get; set; }
+    public List<Sprint> Sprints { get; set; }
 }

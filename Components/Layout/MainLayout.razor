@@ -1,23 +1,42 @@
 ﻿@inherits LayoutComponentBase
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime Js
+<div class="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+    <main class="flex w-full">
+        @if (isAuthenticated)
+        {
+            <NavMenu />
+        }
+        @Body
     </main>
 </div>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+<!-- Blazor Error UI -->
+<div id="blazor-error-ui" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 text-white z-50">
+    <div class="bg-gray-900 p-6 rounded shadow-md text-center">
+        <h3 class="text-xl font-bold">An unhandled error has occurred.</h3>
+        <a href="" class="reload text-blue-500 hover:underline">Reload</a>
+        <a class="dismiss text-gray-400 hover:text-gray-200">🗙</a>
+    </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+
+@code {
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        isAuthenticated = user.Identity?.IsAuthenticated ?? false;
+    }
+    protected override async Task OnAfterRenderAsync(bool isFirstRender)
+    {
+        if (isFirstRender)
+        {
+            await Js.InvokeVoidAsync("window.initializeFlowbite");
+        }
+    }
+}
