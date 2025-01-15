@@ -1,0 +1,144 @@
+﻿@page "/edit-ticket/{TicketId:int}"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using TicketSystem.Models
+@using TicketSystem.Services
+@inject TicketService TicketService
+@inject SprintService SprintService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Edit Ticket</PageTitle>
+
+<section class="bg-gray-50 dark:bg-gray-900 w-full p-3 sm:p-5">
+    <div class="mx-auto w-full max-w-4xl px-4 lg:px-12">
+        <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
+            <div class="p-4">
+                <h1 class="text-lg font-bold text-gray-900 dark:text-white">Edit Ticket</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Update ticket details below:</p>
+            </div>
+            <div class="p-4">
+                @if (Ticket == null)
+                {
+                    <p class="text-red-500">Loading ticket details...</p>
+                }
+                else
+                {
+                    <EditForm Model="Ticket" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="mb-4 text-red-600" />
+
+                        <div class="mb-4">
+                            <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                            <InputText id="title" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                       @bind-Value="Ticket.Title" />
+                            <ValidationMessage For="@(() => Ticket.Title)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <InputTextArea id="description" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                           @bind-Value="Ticket.Description"></InputTextArea>
+                            <ValidationMessage For="@(() => Ticket.Description)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="sprint" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sprint</label>
+                            <InputSelect id="sprint" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                         @bind-Value="Ticket.SprintId">
+                                <option value="">None</option>
+                                @foreach (var sprint in Sprints)
+                                {
+                                    <option value="@sprint.Id">@sprint.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="mb-4">
+                            <label for="points" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Points</label>
+                            <p class="text-gray-700 dark:text-gray-300">@Ticket.Points</p>
+                            <input type="range" id="points"
+                                   class="w-full mt-1"
+                                   min="0" max="100" step="10"
+                                   @bind="Ticket.Points" />
+                            <ValidationMessage For="@(() => Ticket.Points)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                            <InputSelect id="status" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-primary-600 focus:border-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                         @bind-Value="Ticket.Status">
+                                @foreach (var status in Enum.GetValues(typeof(TicketStatus)).Cast<TicketStatus>())
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="color" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ticket Color</label>
+                            <InputText id="color" type="color"
+                                       class="w-full mt-1 rounded-md"
+                                       @bind-Value="Ticket.Color" />
+                            <ValidationMessage For="@(() => Ticket.Color)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="emoji-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ticket Emoji</label>
+                            <InputSelect id="emoji-select" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                         @bind-Value="Ticket.Emoji">
+                                <option value="">None</option>
+                                @foreach (var emoji in emojis)
+                                {
+                                    <option value="@emoji">@emoji</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => Ticket.Emoji)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="flex items-center justify-end w-full">
+                            <button type="submit" class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                                Update Ticket
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public int TicketId { get; set; }
+
+    [CascadingParameter]
+    public Task<AuthenticationState> authStateTask { get; set; }
+
+    private Ticket? Ticket { get; set; }
+    private List<Sprint> Sprints = new List<Sprint>();
+    private string[] emojis = new[] { "😀", "😂", "🥰", "😍", "😎", "👍", "✨", "🔥", "📝" };
+    private int currentUserId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Get current user info
+        var authState = await authStateTask;
+        var user = authState.User;
+        currentUserId = Convert.ToInt32(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+        Ticket = await TicketService.GetByIdAsync(TicketId);
+        Sprints = await SprintService.GetByUserIdAsync(currentUserId);
+        if (Ticket == null || Ticket.UserId != currentUserId)
+        {
+            NavigationManager.NavigateTo("/unauthorized");
+        }
+    }
+    private async Task HandleValidSubmit()
+    {
+        if (Ticket != null && Ticket.UserId == currentUserId)
+        {
+            await TicketService.UpdateAsync(Ticket);
+            NavigationManager.NavigateTo("/backlog");
+        }
+    }
+}

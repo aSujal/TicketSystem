@@ -37,6 +37,22 @@ public class TicketService
     }
     public async Task<List<Ticket?>> GetByUserIdAsync(int userId)
     {
-        return _context.Tickets.Where(t => t.UserId == userId).ToList();
+        return _context.Tickets.Where(t => t.UserId == userId).Include(t => t.Sprint).ToList();
+    }
+
+    public async Task<List<Ticket?>> GetTicketsWithoutSprintAsync(int userId)
+    {
+        return _context.Tickets.Where(t => t.UserId == userId && t.SprintId == null).Include(t => t.Sprint).ToList();
+    }
+
+    public async Task<Ticket?> GetByIdAsync(int ticketId)
+    {
+        return await _context.Tickets.Include(t => t.Sprint).FirstOrDefaultAsync(t => t.Id == ticketId);
+    }
+
+    public async Task DeleteAsync(Ticket ticket)
+    {
+        _context.Tickets.Remove(ticket);
+        await _context.SaveChangesAsync();
     }
 }
