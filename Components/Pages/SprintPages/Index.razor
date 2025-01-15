@@ -6,6 +6,7 @@
 @using TicketSystem.Models
 @using TicketSystem.Services
 @inject SprintService SprintService
+@inject TicketService TicketService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -22,6 +23,7 @@
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
+                            <th scope="col" class="px-4 py-3">Ticket Color</th>
                             <th scope="col" class="px-4 py-3">Ticket ID</th>
                             <th scope="col" class="px-4 py-3">Title</th>
                             <th scope="col" class="px-4 py-3">Description</th>
@@ -33,10 +35,32 @@
                         @foreach (var ticket in Tickets)
                         {
                             <tr class="border-b dark:border-gray-700">
+                                <td class="px-4 py-3">
+                                    <div class="w-10 h-3 rounded-md" style="background: @ticket.Color"></div>
+                                </td>
                                 <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">@ticket.Id</td>
                                 <td class="px-4 py-3">@ticket.Title</td>
                                 <td class="px-4 py-3">@ticket.Description</td>
-                                <td class="px-4 py-3">@ticket.Status</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center">
+                                        <select class="bg-gray-50 hover:bg-gray-500 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block max-w-lg p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                                value="@ticket.Status" @onchange="(e) => UpdateTicketStatus(ticket, e)">
+                                            <option value="@TicketStatus.Offen"
+                                                    class="inline-flex items-center text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:text-gray-300">
+                                                Offen
+                                            </option>
+                                            <option value="@TicketStatus.InBearbeitung"
+                                                    class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                                                In Bearbeitung
+                                            </option>
+                                            <option value="@TicketStatus.Erledigt"
+                                                    class="inline-flex items-center bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                                                Erledigt
+                                            </option>
+                                        </select>
+                                        <span class="w-4 h-4 me-1 @getTicketColor(ticket.Status) rounded-full ml-2"></span>
+                                    </div>
+                                </td>
                                 <td class="px-4 py-3 flex items-center space-x-2">
                                     <!-- Edit -->
                                     <button @onclick="() => NavigateToEditTicket(ticket.Id)" class="text-green-500 hover:text-green-700">
@@ -90,6 +114,37 @@
         else
         {
             NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private String getTicketColor(TicketStatus status)
+    {
+        return status switch
+        {
+            TicketStatus.Offen => "bg-gray-500",
+            TicketStatus.InBearbeitung => "bg-blue-500",
+            TicketStatus.Erledigt => "bg-green-500",
+            _ => "bg-gray-500",
+        };
+    }
+
+    private async Task UpdateTicketStatus(Ticket ticket, ChangeEventArgs e)
+    {
+        if (Enum.TryParse(typeof(TicketStatus), e.Value?.ToString(), out var result))
+        {
+            ticket.Status = (TicketStatus)result;
+
+            // Update the ticket in the database
+            await TicketService.UpdateAsync(ticket);
+
+            // Optionally refresh the tickets list if needed
+            var sprint = await SprintService.GetByIdAsync(SprintToView.Id);
+            Tickets = sprint?.Tickets;
+        }
+        else
+        {
+            // Handle invalid status if necessary
+            Console.WriteLine("Invalid status value received.");
         }
     }
 

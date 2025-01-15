@@ -57,7 +57,7 @@
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, foundUser.Username),
-            new Claim(ClaimTypes.Role, foundUser.isAdmin ? "Admin" : "User"),
+            new Claim(ClaimTypes.Role, foundUser.IsAdmin ? "Admin" : "User"),
             new Claim(ClaimTypes.NameIdentifier, foundUser.Id.ToString())
         };
 

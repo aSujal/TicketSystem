@@ -46,7 +46,7 @@ namespace TicketSystem.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -80,7 +80,7 @@ namespace TicketSystem.Migrations
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
-                    b.Property<int>("SprintId")
+                    b.Property<int?>("SprintId")
                         .HasColumnType("int");
 
                     b.Property<int>("Status")
@@ -117,6 +117,9 @@ namespace TicketSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -128,9 +131,6 @@ namespace TicketSystem.Migrations
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("isAdmin")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -145,8 +145,7 @@ namespace TicketSystem.Migrations
                     b.HasOne("TicketSystem.Models.User", "User")
                         .WithMany("Sprints")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
@@ -156,14 +155,16 @@ namespace TicketSystem.Migrations
                     b.HasOne("TicketSystem.Models.Sprint", "Sprint")
                         .WithMany("Tickets")
                         .HasForeignKey("SprintId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("TicketSystem.Models.User", null)
+                    b.HasOne("TicketSystem.Models.User", "User")
                         .WithMany("Tickets")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Sprint");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TicketSystem.Models.Sprint", b =>

@@ -12,7 +12,7 @@ using TicketSystem.Data;
 namespace TicketSystem.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250113081045_InitialCreate")]
+    [Migration("20250115102253_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -49,7 +49,12 @@ namespace TicketSystem.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Sprints");
                 });
@@ -78,7 +83,7 @@ namespace TicketSystem.Migrations
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
-                    b.Property<int>("SprintId")
+                    b.Property<int?>("SprintId")
                         .HasColumnType("int");
 
                     b.Property<int>("Status")
@@ -88,7 +93,7 @@ namespace TicketSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -115,6 +120,9 @@ namespace TicketSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -127,14 +135,22 @@ namespace TicketSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<bool>("isAdmin")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("Username");
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TicketSystem.Models.Sprint", b =>
+                {
+                    b.HasOne("TicketSystem.Models.User", "User")
+                        .WithMany("Sprints")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TicketSystem.Models.Ticket", b =>
@@ -142,14 +158,12 @@ namespace TicketSystem.Migrations
                     b.HasOne("TicketSystem.Models.Sprint", "Sprint")
                         .WithMany("Tickets")
                         .HasForeignKey("SprintId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("TicketSystem.Models.User", "User")
                         .WithMany("Tickets")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Sprint");
 
@@ -163,6 +177,8 @@ namespace TicketSystem.Migrations
 
             modelBuilder.Entity("TicketSystem.Models.User", b =>
                 {
+                    b.Navigation("Sprints");
+
                     b.Navigation("Tickets");
                 });
 #pragma warning restore 612, 618

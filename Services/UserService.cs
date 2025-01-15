@@ -29,7 +29,7 @@ public class UserService
                 Username = username,
                 Email = email,
                 PasswordSalt = Hashing.CreateSalt(32),
-                isAdmin = false
+                IsAdmin = false
             };
 
             user.PasswordHash = Hashing.CreatePasswordHash(password, user.PasswordSalt);
@@ -86,7 +86,7 @@ public class UserService
             var loggedInUser = await _context.Users.FindAsync(loggedInUserId);
 
             // Only admins can delete users, and they can't delete themselves
-            if (userToDelete == null || loggedInUser == null || !loggedInUser.isAdmin || loggedInUser.Id == userId)
+            if (userToDelete == null || loggedInUser == null || !loggedInUser.IsAdmin || loggedInUser.Id == userId)
             {
                 return false;
             }
@@ -111,7 +111,7 @@ public class UserService
             var loggedInUser = await _context.Users.FindAsync(loggedInUserId);
 
             // Only admins can update other users, and they cannot update their own role or username
-            if (userToUpdate == null || loggedInUser == null || !loggedInUser.isAdmin || loggedInUser.Id == updatedUser.Id)
+            if (userToUpdate == null || loggedInUser == null || !loggedInUser.IsAdmin || loggedInUser.Id == updatedUser.Id)
             {
                 return false;
             }
@@ -141,7 +141,7 @@ public class UserService
     public async Task<bool> IsUserAdmin(int userId)
     {
         var user = await _context.Users.FindAsync(userId);
-        return user?.isAdmin ?? false;
+        return user?.IsAdmin ?? false;
     }
 
     public async Task<bool> DoesUserExist(string username, string email)

@@ -15,12 +15,12 @@
         <ul class="space-y-2">
             @if (isAuthenticated)
             {
-                <li>
-                    <a href="/dashboard" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span class="ml-3">Dashboard</span>
-                    </a>
-                </li>
+                @*  <li>
+            <a href="/dashboard" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+            <i class="fas fa-tachometer-alt"></i>
+            <span class="ml-3">Dashboard</span>
+            </a>
+            </li> *@
                 <li>
                     <a href="/" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <i class="fas fa-project-diagram"></i>
@@ -28,9 +28,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/tasks" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <a href="/backlog" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <i class="fas fa-tasks"></i>
-                        <span class="ml-3">Tasks</span>
+                        <span class="ml-3">Backlog</span>
                     </a>
                 </li>
                 @if (isAdmin)
@@ -42,12 +42,12 @@
                         </a>
                     </li>
                 }
-                <li>
-                    <a href="/settings" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <i class="fas fa-cog"></i>
-                        <span class="ml-3">Settings</span>
-                    </a>
-                </li>
+                @*   <li>
+            <a href="/settings" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+            <i class="fas fa-cog"></i>
+            <span class="ml-3">Settings</span>
+            </a>
+            </li> *@
                 <li>
                     <button @onclick="Logout" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <i class="fas fa-sign-out-alt"></i>

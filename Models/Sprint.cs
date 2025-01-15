@@ -4,6 +4,7 @@ namespace TicketSystem.Models;
 
 public class Sprint
 {
+    [Key]
     public int Id { get; set; }
     [Required(ErrorMessage = "Name is required.")]
     public string Name { get; set; }
@@ -14,7 +15,7 @@ public class Sprint
     [Required(ErrorMessage = "End Date is required.")]
     [DateGreaterThan("StartDate", ErrorMessage = "End Date must be after Start Date.")]
     public DateTime EndDate { get; set; }
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
     public User? User { get; set; }
     public List<Ticket> Tickets { get; set; }
     public string? Color { get; set; } = "#FFF1D0";

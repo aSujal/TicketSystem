@@ -24,11 +24,14 @@ public class DataContext : DbContext
         modelBuilder.Entity<Ticket>(entity =>
         {
             entity.HasKey(t => t.Id);
-
             entity.HasOne(t => t.Sprint)
                 .WithMany(s => s.Tickets)
                 .HasForeignKey(t => t.SprintId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(t => t.User)
+                .WithMany(u => u.Tickets)
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Sprint>(entity =>
@@ -38,7 +41,7 @@ public class DataContext : DbContext
             entity.HasOne(s => s.User)
                 .WithMany(u => u.Sprints)
                 .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasMany(s => s.Tickets)
                 .WithOne(t => t.Sprint)
