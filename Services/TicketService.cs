@@ -35,8 +35,8 @@ public class TicketService
             throw new HttpRequestException("Ticket konnte nicht aktualisiert werden.");
         }
     }
-    public async GetByUserIdAsync(int userId)
+    public async Task<List<Ticket?>> GetByUserIdAsync(int userId)
     {
-
+        return _context.Tickets.Where(t => t.UserId == userId).ToList();
     }
 }
